@@ -69,3 +69,18 @@ class TestCleoraGetTransitionMatrix(TestCase):
             [0.5, 0.5, 0.0],
         ]
         self.assertEqual(transition_matrix.tolist(), expected_transition_matrix)
+
+
+class TestCleoraInitializeEmbeddingMatrix(TestCase):
+    def test_should_return_matrix_with_correct_shape_and_cell_values_to_be_minus_one_or_one(
+        self,
+    ):
+        num_nodes = 3
+
+        cleora = Cleora()
+        embedding_matrix = cleora._initialize_embedding_matrix(num_nodes)
+
+        self.assertEqual(embedding_matrix.shape, (num_nodes, num_nodes))
+        self.assertTrue(
+            (embedding_matrix == -1).any() and (embedding_matrix == 1).any()
+        )

@@ -16,7 +16,11 @@ class Cleora:
 
         for chunk in chunks:
             transition_matrix = self._get_transition_matrix(chunk)  # noqa: F841
-            pass
+
+            num_nodes = len(chunk.nodes())
+            embedding_matrix = self._initialize_embedding_matrix(  # noqa: F841
+                num_nodes
+            )
 
     def _chunk_graph(
         self, graph: nx.Graph, num_chunks: int = 1
@@ -55,3 +59,7 @@ class Cleora:
         # Get the transition matrix
         transition_matrix = np.linalg.inv(degree_matrix) @ adjacency_matrix
         return transition_matrix
+
+    def _initialize_embedding_matrix(self, num_nodes: int) -> np.ndarray:
+        """Initialize the embedding matrix with -1 and 1 using uniform distribution"""
+        return np.random.choice([-1, 1], size=(num_nodes, num_nodes))
