@@ -52,3 +52,20 @@ class TestCleoraChunkNodes(TestCase):
         self.assertEqual(len(chunks[0].edges()), 2)
         self.assertEqual(len(chunks[1].nodes()), 2)
         self.assertEqual(len(chunks[1].edges()), 1)
+
+
+class TestCleoraGetTransitionMatrix(TestCase):
+    def test_should_return_transition_matrix_for_triangle(self):
+        graph = nx.Graph()
+        graph.add_nodes_from([1, 2, 3])
+        graph.add_edges_from([(1, 2), (2, 3), (1, 3)])
+
+        cleora = Cleora()
+        transition_matrix = cleora._get_transition_matrix(graph)
+
+        expected_transition_matrix = [
+            [0.0, 0.5, 0.5],
+            [0.5, 0.0, 0.5],
+            [0.5, 0.5, 0.0],
+        ]
+        self.assertEqual(transition_matrix.tolist(), expected_transition_matrix)

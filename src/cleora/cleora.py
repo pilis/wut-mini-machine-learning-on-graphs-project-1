@@ -15,6 +15,7 @@ class Cleora:
         chunks = self._chunk_graph(graph)
 
         for chunk in chunks:
+            transition_matrix = self._get_transition_matrix(chunk)  # noqa: F841
             pass
 
     def _chunk_graph(
@@ -44,3 +45,13 @@ class Cleora:
             # Get induced subgraph
             subgraph = graph.subgraph(nodes)
             yield subgraph
+
+    def _get_transition_matrix(self, graph: nx.Graph) -> np.ndarray:
+        """Get the transition matrix for a graph"""
+        # Get the adjacency matrix
+        adjacency_matrix = nx.to_numpy_array(graph)
+        # Get the degree matrix
+        degree_matrix = np.diag(np.sum(adjacency_matrix, axis=1))
+        # Get the transition matrix
+        transition_matrix = np.linalg.inv(degree_matrix) @ adjacency_matrix
+        return transition_matrix
