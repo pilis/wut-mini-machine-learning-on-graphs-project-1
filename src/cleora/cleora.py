@@ -6,9 +6,10 @@ import numpy as np
 
 
 class Cleora:
-    def __init__(self):
-        """Initialize the Cleora class with config"""
-        pass
+    def __init__(self, num_iterations: int = 5, num_dimensions=3):
+        """Initialize the Cleora"""
+        self.num_iterations = num_iterations
+        self.num_dimensions = num_dimensions
 
     def embed(self, graph: nx.Graph) -> np.ndarray:
         """Embed a graph into a vector space"""
@@ -19,8 +20,13 @@ class Cleora:
 
             num_nodes = len(chunk.nodes())
             embedding_matrix = self._initialize_embedding_matrix(  # noqa: F841
-                num_nodes
+                num_nodes, self.num_dimensions
             )
+
+            for _ in range(self.num_iterations):
+                embedding_matrix = self._train_embedding(
+                    transition_matrix, embedding_matrix
+                )
 
     def _chunk_graph(
         self, graph: nx.Graph, num_chunks: int = 1
@@ -60,6 +66,25 @@ class Cleora:
         transition_matrix = np.linalg.inv(degree_matrix) @ adjacency_matrix
         return transition_matrix
 
-    def _initialize_embedding_matrix(self, num_nodes: int) -> np.ndarray:
+    def _initialize_embedding_matrix(
+        self, num_nodes: int, num_dimensions
+    ) -> np.ndarray:
         """Initialize the embedding matrix with -1 and 1 using uniform distribution"""
-        return np.random.choice([-1, 1], size=(num_nodes, num_nodes))
+        return np.random.choice([-1, 1], size=(num_nodes, num_dimensions))
+
+    def _train_embedding(
+        self, transition_matrix: np.ndarray, embedding_matrix: np.ndarray
+    ) -> np.ndarray:
+        """Train the embedding matrix"""
+        num_dimensions = embedding_matrix.shape[1]
+
+        # Iterate over the columns of the embedding matrix
+        for i in range(num_dimensions):
+            # Multiply the transition matrix by the ith column of the embedding matrix
+            embedding_matrix[:, i] = transition_matrix @ embedding_matrix[:, i]
+
+        # Normalize the embedding matrix with L2 norm
+        normalized_embedding_matrix = embedding_matrix / np.linalg.norm(
+            embedding_matrix, axis=1, keepdims=True
+        )
+        return normalized_embedding_matrix

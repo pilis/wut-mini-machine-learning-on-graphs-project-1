@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 import networkx as nx
+import numpy as np
 
 from cleora.cleora import Cleora
 
@@ -76,11 +77,36 @@ class TestCleoraInitializeEmbeddingMatrix(TestCase):
         self,
     ):
         num_nodes = 3
+        num_dimensions = 2
 
         cleora = Cleora()
-        embedding_matrix = cleora._initialize_embedding_matrix(num_nodes)
+        embedding_matrix = cleora._initialize_embedding_matrix(
+            num_nodes, num_dimensions
+        )
 
-        self.assertEqual(embedding_matrix.shape, (num_nodes, num_nodes))
+        self.assertEqual(embedding_matrix.shape, (num_nodes, num_dimensions))
         self.assertTrue(
             (embedding_matrix == -1).any() and (embedding_matrix == 1).any()
         )
+
+
+class TestCleoraTrainEmbedding(TestCase):
+    def test_should_return_embedding_matrix_with_correct_shape(self):
+        transition_matrix = np.array(
+            [
+                [0.0, 0.5, 0.5],
+                [0.5, 0.0, 0.5],
+                [0.5, 0.5, 0.0],
+            ]
+        )
+        embedding_matrix = np.array(
+            [
+                [1, -1],
+                [-1, 1],
+                [1, -1],
+            ]
+        )
+
+        cleora = Cleora()
+        embedding_matrix = cleora._train_embedding(transition_matrix, embedding_matrix)
+        self.assertEqual(embedding_matrix.shape, (3, 2))
