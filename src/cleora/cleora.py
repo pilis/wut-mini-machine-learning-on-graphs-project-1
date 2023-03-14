@@ -1,6 +1,3 @@
-import math
-from typing import Generator
-
 import networkx as nx
 import numpy as np
 
@@ -13,56 +10,29 @@ class Cleora:
 
     def embed(self, graph: nx.Graph) -> np.ndarray:
         """Embed a graph into a vector space"""
-        chunks = self._chunk_graph(graph)
+        transition_matrix = self._get_transition_matrix(graph)
 
-        for chunk in chunks:
-            transition_matrix = self._get_transition_matrix(chunk)  # noqa: F841
+        # Initialize the embedding matrix
+        num_nodes = len(graph.nodes())
+        embedding_matrix = self._initialize_embedding_matrix(
+            num_nodes, self.num_dimensions
+        )
 
-            num_nodes = len(chunk.nodes())
-            embedding_matrix = self._initialize_embedding_matrix(  # noqa: F841
-                num_nodes, self.num_dimensions
+        # Train the embedding matrix
+        for _ in range(self.num_iterations):
+            embedding_matrix = self._train_embedding(
+                transition_matrix, embedding_matrix
             )
 
-            for _ in range(self.num_iterations):
-                embedding_matrix = self._train_embedding(
-                    transition_matrix, embedding_matrix
-                )
-
-    def _chunk_graph(
-        self, graph: nx.Graph, num_chunks: int = 1
-    ) -> Generator[nx.Graph, None, None]:
-        """Chunk a graph into subgraphs"""
-        if not num_chunks > 0:
-            raise ValueError("num_chunks must be greater than 0")
-        # Determine the number of nodes in the graph
-        num_nodes = len(graph.nodes())
-        # Determine the size of each chunk
-        # If the number of nodes is not evenly divisible by the number of chunks, the last chunk will be smaller
-        chunk_size = math.ceil(num_nodes / num_chunks)
-
-        # Generate a subgraphs
-        for i in range(num_chunks):
-            start = i * chunk_size
-            end = start + chunk_size
-            if i == num_chunks - 1:
-                end = num_nodes
-            nodes = list(graph.nodes())[start:end]
-            # Add all neighbors of the nodes in the chunk to the chunk
-            neighbors = []
-            for node in nodes:
-                neighbors.extend(list(graph.neighbors(node)))
-            nodes.extend(neighbors)
-            # Get induced subgraph
-            subgraph = graph.subgraph(nodes)
-            yield subgraph
+        return embedding_matrix
 
     def _get_transition_matrix(self, graph: nx.Graph) -> np.ndarray:
         """Get the transition matrix for a graph"""
-        # Get the adjacency matrix
+        # Get the adjacency matrix. The adjacency matrix is a square matrix that represents the graph's edges as 1s and 0s.
         adjacency_matrix = nx.to_numpy_array(graph)
-        # Get the degree matrix
+        # Get the degree matrix. Degree matrix is a diagonal matrix that contains the degree of each node.
         degree_matrix = np.diag(np.sum(adjacency_matrix, axis=1))
-        # Get the transition matrix
+        # Get the transition matrix. Transition matrix is the inverse of the degree matrix multiplied by the adjacency matrix.
         transition_matrix = np.linalg.inv(degree_matrix) @ adjacency_matrix
         return transition_matrix
 
@@ -84,7 +54,9 @@ class Cleora:
             embedding_matrix[:, i] = transition_matrix @ embedding_matrix[:, i]
 
         # Normalize the embedding matrix with L2 norm
-        normalized_embedding_matrix = embedding_matrix / np.linalg.norm(
+        embedding_matrix_l2_norm = np.linalg.norm(
             embedding_matrix, axis=1, keepdims=True
         )
+        normalized_embedding_matrix = embedding_matrix / embedding_matrix_l2_norm
+
         return normalized_embedding_matrix
