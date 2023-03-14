@@ -3,7 +3,7 @@ import numpy as np
 
 
 class Cleora:
-    def __init__(self, num_iterations: int = 5, num_dimensions=3):
+    def __init__(self, num_iterations: int = 5, num_dimensions: int = 3):
         """Initialize the Cleora"""
         self.num_iterations = num_iterations
         self.num_dimensions = num_dimensions

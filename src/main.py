@@ -2,6 +2,7 @@ import logging
 
 import click
 import networkx as nx
+import numpy as np
 
 from cleora.cleora import Cleora
 
@@ -9,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-def load_networkx_graph_from_file(filepath) -> nx.Graph:
+def load_networkx_graph_from_file(filepath: str) -> nx.Graph:
     """Load a networkx graph from a file"""
     logger.info("Loading graph from file")
     graph = nx.read_edgelist(filepath, nodetype=int)
@@ -17,19 +18,42 @@ def load_networkx_graph_from_file(filepath) -> nx.Graph:
     return graph
 
 
+def save_embedding_to_file(embedding: np.ndarray, filepath: str) -> None:
+    """Save the embedding to a file"""
+    np.savetxt(filepath, embedding, delimiter=" ")
+
+
 @click.command()
 @click.option(
-    "--filepath",
+    "--input-filepath",
     default="data/example_1.txt",
-    help="Path to the file containing the graph",
+    help="Path to the input file containing the graph",
 )
-def main(filepath):
-    graph = load_networkx_graph_from_file(filepath)
+@click.option(
+    "--output-filepath",
+    default="data/example_1_embedding.txt",
+    help="Path to the output file containing the embedding",
+)
+@click.option(
+    "--num_dimensions",
+    default=2,
+    help="Number of dimensions for the embedding",
+)
+@click.option(
+    "--num_iterations",
+    default=3,
+    help="Number of iterations to run the algorithm",
+)
+def main(
+    input_filepath: str, output_filepath: str, num_dimensions: int, num_iterations: int
+) -> None:
+    """Main function to run the Cleora algorithm"""
+    graph = load_networkx_graph_from_file(input_filepath)
 
-    cleora = Cleora()
+    cleora = Cleora(num_dimensions=num_dimensions, num_iterations=num_iterations)
     embedding = cleora.embed(graph)
 
-    logger.info("Embedding: %s", embedding)
+    save_embedding_to_file(embedding, output_filepath)
 
 
 if __name__ == "__main__":
