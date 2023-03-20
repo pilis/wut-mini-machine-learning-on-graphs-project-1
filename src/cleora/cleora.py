@@ -1,5 +1,10 @@
+import logging
+
 import networkx as nx
 import numpy as np
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class Cleora:
@@ -11,7 +16,6 @@ class Cleora:
     def embed(self, graph: nx.Graph) -> np.ndarray:
         """Embed a graph into a vector space"""
         transition_matrix = self._get_transition_matrix(graph)
-
         # Initialize the embedding matrix
         num_nodes = len(graph.nodes())
         embedding_matrix = self._initialize_embedding_matrix(

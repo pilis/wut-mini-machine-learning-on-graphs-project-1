@@ -26,17 +26,17 @@ def save_embedding_to_file(embedding: np.ndarray, filepath: str) -> None:
 @click.command()
 @click.option(
     "--input-filepath",
-    default="data/example_1.txt",
+    default="data/facebook_combined.txt",
     help="Path to the input file containing the graph",
 )
 @click.option(
     "--output-filepath",
-    default="data/example_1_embedding.txt",
+    default="data/facebook_combined_emb.txt",
     help="Path to the output file containing the embedding",
 )
 @click.option(
     "--num_dimensions",
-    default=2,
+    default=5,
     help="Number of dimensions for the embedding",
 )
 @click.option(
