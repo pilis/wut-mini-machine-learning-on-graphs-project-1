@@ -44,8 +44,14 @@ pre-commit install
 
 ### Running the code
 
+Run the script with default parameters:
 ```bash
 python src/main.py
+```
+
+Run the script in debug mode:
+```bash
+DEBUG=true python src/main.py
 ```
 
 ## Contributing

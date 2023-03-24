@@ -1,4 +1,5 @@
 import logging
+import os
 
 import click
 import networkx as nx
@@ -6,15 +7,18 @@ import numpy as np
 
 from cleora.cleora import Cleora
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+is_debug_mode = os.getenv("DEBUG", "False") == "True"
+logging_level = logging.DEBUG if is_debug_mode else logging.INFO
+logging.basicConfig(level=logging_level, force=is_debug_mode)
+if is_debug_mode:
+    logging.debug("Debug mode is on")
 
 
 def load_networkx_graph_from_file(filepath: str) -> nx.Graph:
     """Load a networkx graph from a file"""
-    logger.info("Loading graph from file")
+    logging.debug("Loading graph from file")
     graph = nx.read_edgelist(filepath, nodetype=int)
-    logger.info("Graph loaded")
+    logging.debug("Graph loaded")
     return graph
 
 
@@ -26,12 +30,12 @@ def save_embedding_to_file(embedding: np.ndarray, filepath: str) -> None:
 @click.command()
 @click.option(
     "--input-filepath",
-    default="data/facebook_combined.txt",
+    default="data/example_1.txt",
     help="Path to the input file containing the graph",
 )
 @click.option(
     "--output-filepath",
-    default="data/facebook_combined_emb.txt",
+    default="data/example_2_embedding.txt",
     help="Path to the output file containing the embedding",
 )
 @click.option(

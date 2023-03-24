@@ -16,15 +16,15 @@ class Cleora:
     def embed(self, graph: nx.Graph) -> np.ndarray:
         """Embed a graph into a vector space"""
         transition_matrix = self._get_transition_matrix(graph)
-        print(transition_matrix)
+        logging.debug(transition_matrix)
         # Initialize the embedding matrix
         num_nodes = len(graph.nodes())
         embedding_matrix = self._initialize_embedding_matrix(
             num_nodes, self.num_dimensions
         )
 
-        print("Embedding matrix before training: ")
-        print(embedding_matrix)
+        logging.debug("Embedding matrix before training: ")
+        logging.debug(embedding_matrix)
 
         # Train the embedding matrix
         for _ in range(self.num_iterations):
@@ -61,15 +61,15 @@ class Cleora:
             # Multiply the transition matrix by the ith column of the embedding matrix
             embedding_matrix[:, i] = transition_matrix @ embedding_matrix[:, i]
 
-        print("Embedding matrix before normalization: ")
-        print(embedding_matrix)
+        logging.debug("Embedding matrix before normalization: ")
+        logging.debug(embedding_matrix)
 
         # Normalize the embedding matrix with L2 norm
         embedding_matrix_l2_norm = np.linalg.norm(
             embedding_matrix, axis=1, keepdims=True
         )
-        print("Embedding matrix L2 norm: ")
-        print(embedding_matrix_l2_norm)
+        logging.debug("Embedding matrix L2 norm: ")
+        logging.debug(embedding_matrix_l2_norm)
 
         normalized_embedding_matrix = np.divide(
             embedding_matrix, embedding_matrix_l2_norm
