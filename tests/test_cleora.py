@@ -36,9 +36,8 @@ class TestCleoraInitializeEmbeddingMatrix(TestCase):
         )
 
         self.assertEqual(embedding_matrix.shape, (num_nodes, num_dimensions))
-        self.assertTrue(
-            (embedding_matrix == -1).any() and (embedding_matrix == 1).any()
-        )
+        self.assertTrue(np.all(embedding_matrix >= -1))
+        self.assertTrue(np.all(embedding_matrix <= 1))
 
 
 class TestCleoraTrainEmbedding(TestCase):
