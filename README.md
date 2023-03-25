@@ -49,10 +49,17 @@ Run the script with default parameters:
 python src/main.py
 ```
 
-Run the script in debug mode:
+To run the script in debug mode set the `DEBUG` environment variable to `True`:
 ```bash
-DEBUG=true python src/main.py
+DEBUG=True python src/main.py
 ```
+
+Optional parameters:
+- `--algorithm-version` - version of the algorithm to run. Possible values: `fixed`, `neighbourhood_depth`. Default: `fixed`.
+- `--input-filepath` - path to the input file. Default: `data/graphs/triangle.txt`.
+- `--output-filepath` - path to the output file. Default: `data/embeddings/triangle.txt`.
+- `num_dimensions` - number of dimensions of the embedding. Default: 5
+- `num_iterations` - number of iterations of the algorithm. Default: 3
 
 ## Contributing
 

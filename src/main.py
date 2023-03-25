@@ -5,7 +5,11 @@ import click
 import networkx as nx
 import numpy as np
 
-from cleora.cleora import CleoraFixedIterations
+from cleora.cleora import (
+    Cleora,
+    CleoraFixedIterations,
+    CleoraNeighbourhoodDepthIterations,
+)
 
 is_debug_mode = os.getenv("DEBUG", "false") == "true"
 logging_level = logging.DEBUG if is_debug_mode else logging.INFO
@@ -29,6 +33,12 @@ def save_embedding_to_file(embedding: np.ndarray, filepath: str) -> None:
 
 @click.command()
 @click.option(
+    "--algorithm-version",
+    type=click.Choice(["fixed", "neighbourhood_depth"], case_sensitive=False),
+    default="fixed",
+    help="Choose the algorithm version to run",
+)
+@click.option(
     "--input-filepath",
     default="data/graphs/triangle.txt",
     help="Path to the input file containing the graph",
@@ -49,14 +59,27 @@ def save_embedding_to_file(embedding: np.ndarray, filepath: str) -> None:
     help="Number of iterations to run the algorithm",
 )
 def main(
-    input_filepath: str, output_filepath: str, num_dimensions: int, num_iterations: int
+    algorithm_version: str,
+    input_filepath: str,
+    output_filepath: str,
+    num_dimensions: int,
+    num_iterations: int,
 ) -> None:
     """Main function to run the Cleora algorithm"""
+
+    def get_cleora_instance(algorithm_version: str) -> Cleora:
+        if algorithm_version == "fixed":
+            return CleoraFixedIterations(
+                num_dimensions=num_dimensions, num_iterations=num_iterations
+            )
+        elif algorithm_version == "neighbourhood_depth":
+            return CleoraNeighbourhoodDepthIterations(num_dimensions=num_dimensions)
+        else:
+            raise ValueError(f"Invalid algorithm_version version: {algorithm_version}")
+
     graph = load_networkx_graph_from_file(input_filepath)
 
-    cleora = CleoraFixedIterations(
-        num_dimensions=num_dimensions, num_iterations=num_iterations
-    )
+    cleora = get_cleora_instance(algorithm_version)
     embedding = cleora.embed(graph)
 
     save_embedding_to_file(embedding, output_filepath)

@@ -3,7 +3,11 @@ from unittest import TestCase
 import networkx as nx
 import numpy as np
 
-from cleora.cleora import Cleora, CleoraFixedIterations
+from cleora.cleora import (
+    Cleora,
+    CleoraFixedIterations,
+    CleoraNeighbourhoodDepthIterations,
+)
 
 
 class TestCleoraGetTransitionMatrix(TestCase):
@@ -53,3 +57,45 @@ class TestCleoraFixedIterationsEmbed(TestCase):
         embedding_matrix = cleora.embed(graph)
 
         self.assertEqual(embedding_matrix.shape, (len(graph.nodes()), num_dimensions))
+
+
+class TestCleoraNeighbourhoodDepthIterationsGetNodesNeighbourhoodDepth(TestCase):
+    def test_should_return_neighbourhood_depth_matrix_for_triangle(self):
+        graph = nx.Graph()
+        graph.add_nodes_from([1, 2, 3])
+        graph.add_edges_from([(1, 2), (2, 3), (1, 3)])
+
+        cleora = CleoraNeighbourhoodDepthIterations()
+        nodes_neighbourhood_depth = cleora._get_nodes_neighbourhood_depth(graph)
+
+        expected_nodes_neighbourhood_depth = [1.0, 1.0, 1.0]
+        self.assertListEqual(
+            list(nodes_neighbourhood_depth), expected_nodes_neighbourhood_depth
+        )
+
+    def test_should_return_nodes_neighbourhood_depth_for_path(self):
+        graph = nx.Graph()
+        graph.add_nodes_from([1, 2, 3])
+        graph.add_edges_from([(1, 2), (2, 3)])
+
+        cleora = CleoraNeighbourhoodDepthIterations()
+        nodes_neighbourhood_depth = cleora._get_nodes_neighbourhood_depth(graph)
+
+        expected_nodes_neighbourhood_depth = [2.0, 1.0, 2.0]
+        self.assertListEqual(
+            list(nodes_neighbourhood_depth), expected_nodes_neighbourhood_depth
+        )
+
+    def test_should_return_nodes_neighbourhood_depth_for_disconnected_graph(self):
+        # A disconnected graph with 2 components and 3 nodes in first component and 2 nodes in second component
+        graph = nx.Graph()
+        graph.add_nodes_from([1, 2, 3, 4, 5])
+        graph.add_edges_from([(1, 2), (2, 3), (4, 5)])
+
+        cleora = CleoraNeighbourhoodDepthIterations()
+        nodes_neighbourhood_depth = cleora._get_nodes_neighbourhood_depth(graph)
+
+        expected_nodes_neighbourhood_depth = [2.0, 1.0, 2.0, 1.0, 1.0]
+        self.assertListEqual(
+            list(nodes_neighbourhood_depth), expected_nodes_neighbourhood_depth
+        )
