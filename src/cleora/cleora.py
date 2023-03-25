@@ -46,18 +46,31 @@ class CleoraFixedIterations(Cleora):
 
         # Iterate over the number of iterations
         for _ in range(self.num_iterations):
-            # Iterate over the columns of the embedding matrix
-            for i in range(self.num_dimensions):
-                # Multiply the transition matrix by the ith column of the embedding matrix
-                embedding_matrix[:, i] = transition_matrix @ embedding_matrix[:, i]
-
-            # Normalize the embedding matrix with L2 norm
-            embedding_matrix_l2_norm = np.linalg.norm(
-                embedding_matrix, axis=1, keepdims=True
+            embedding_matrix = self._update_embedding(
+                embedding_matrix, transition_matrix
             )
-            embedding_matrix = np.divide(embedding_matrix, embedding_matrix_l2_norm)
 
         return embedding_matrix
+
+    def _update_embedding(
+        self, embedding_matrix: np.ndarray, transition_matrix: np.ndarray
+    ) -> np.ndarray:
+        """Update the embedding matrix"""
+        num_dimensions = embedding_matrix.shape[1]
+        # Iterate over the columns of the embedding matrix
+        for i in range(num_dimensions):
+            # Multiply the transition matrix by the ith column of the embedding matrix
+            embedding_matrix[:, i] = transition_matrix @ embedding_matrix[:, i]
+
+        # Normalize the embedding matrix with L2 norm
+        embedding_matrix_l2_norm = np.linalg.norm(
+            embedding_matrix, axis=1, keepdims=True
+        )
+        normalized_embedding_matrix = np.divide(
+            embedding_matrix, embedding_matrix_l2_norm
+        )
+
+        return normalized_embedding_matrix
 
 
 class CleoraNeighbourhoodDepthIterations(Cleora):

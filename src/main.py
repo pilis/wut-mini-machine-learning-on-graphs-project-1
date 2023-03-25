@@ -49,12 +49,12 @@ def save_embedding_to_file(embedding: np.ndarray, filepath: str) -> None:
     help="Path to the output file containing the embedding",
 )
 @click.option(
-    "--num_dimensions",
+    "--num-dimensions",
     default=5,
     help="Number of dimensions for the embedding",
 )
 @click.option(
-    "--num_iterations",
+    "--num-iterations",
     default=3,
     help="Number of iterations to run the algorithm",
 )
