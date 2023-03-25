@@ -3,7 +3,7 @@ from unittest import TestCase
 import networkx as nx
 import numpy as np
 
-from cleora.cleora import Cleora
+from cleora.cleora import Cleora, CleoraFixedIterations
 
 
 class TestCleoraGetTransitionMatrix(TestCase):
@@ -40,23 +40,16 @@ class TestCleoraInitializeEmbeddingMatrix(TestCase):
         self.assertTrue(np.all(embedding_matrix <= 1))
 
 
-class TestCleoraTrainEmbedding(TestCase):
+class TestCleoraFixedIterationsEmbed(TestCase):
     def test_should_return_embedding_matrix_with_correct_shape(self):
-        transition_matrix = np.array(
-            [
-                [0.0, 0.5, 0.5],
-                [0.5, 0.0, 0.5],
-                [0.5, 0.5, 0.0],
-            ]
-        )
-        embedding_matrix = np.array(
-            [
-                [1, -1],
-                [-1, 1],
-                [1, -1],
-            ]
-        )
+        graph = nx.Graph()
+        graph.add_nodes_from([1, 2, 3])
+        graph.add_edges_from([(1, 2), (2, 3), (1, 3)])
 
-        cleora = Cleora()
-        embedding_matrix = cleora._train_embedding(transition_matrix, embedding_matrix)
-        self.assertEqual(embedding_matrix.shape, (3, 2))
+        num_iterations = 5
+        num_dimensions = 2
+
+        cleora = CleoraFixedIterations(num_iterations, num_dimensions)
+        embedding_matrix = cleora.embed(graph)
+
+        self.assertEqual(embedding_matrix.shape, (len(graph.nodes()), num_dimensions))

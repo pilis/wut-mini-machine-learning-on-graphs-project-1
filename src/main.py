@@ -5,9 +5,9 @@ import click
 import networkx as nx
 import numpy as np
 
-from cleora.cleora import Cleora
+from cleora.cleora import CleoraFixedIterations
 
-is_debug_mode = os.getenv("DEBUG", "False") == "True"
+is_debug_mode = os.getenv("DEBUG", "false") == "true"
 logging_level = logging.DEBUG if is_debug_mode else logging.INFO
 logging.basicConfig(level=logging_level, force=is_debug_mode)
 if is_debug_mode:
@@ -30,12 +30,12 @@ def save_embedding_to_file(embedding: np.ndarray, filepath: str) -> None:
 @click.command()
 @click.option(
     "--input-filepath",
-    default="data/example_1.txt",
+    default="data/graphs/triangle.txt",
     help="Path to the input file containing the graph",
 )
 @click.option(
     "--output-filepath",
-    default="data/example_2_embedding.txt",
+    default="data/embeddings/triangle.txt",
     help="Path to the output file containing the embedding",
 )
 @click.option(
@@ -54,7 +54,9 @@ def main(
     """Main function to run the Cleora algorithm"""
     graph = load_networkx_graph_from_file(input_filepath)
 
-    cleora = Cleora(num_dimensions=num_dimensions, num_iterations=num_iterations)
+    cleora = CleoraFixedIterations(
+        num_dimensions=num_dimensions, num_iterations=num_iterations
+    )
     embedding = cleora.embed(graph)
 
     save_embedding_to_file(embedding, output_filepath)
