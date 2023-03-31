@@ -3,6 +3,9 @@ from collections import deque
 
 import networkx as nx
 import numpy as np
+import torch
+from torch_geometric.nn import GATConv
+from torch_geometric.utils import from_networkx
 
 
 class Cleora:
@@ -154,3 +157,152 @@ class CleoraNeighbourhoodDepthIterations(Cleora):
         logging.debug(f"Nodes neighbourhood depth: {nodes_neighbourhood_depth}")
 
         return nodes_neighbourhood_depth
+
+
+class CleoraPPR(Cleora):
+    def __init__(
+        self,
+        alpha: float = 0.9,
+        num_dimensions: int = 3,
+        tolerance: float = 1e-4,
+        max_iterations: int = 100,
+    ):
+        """Initialize the Cleora with Personalized PageRank"""
+        super().__init__(num_dimensions)
+        self.alpha = alpha
+        self.tolerance = tolerance
+        self.max_iterations = max_iterations
+
+    def _get_transition_matrix(self, graph: nx.Graph) -> np.ndarray:
+        """Get the transition matrix for a graph using Personalized PageRank"""
+        adjacency_matrix = nx.to_numpy_array(graph)
+        degree_matrix = np.diag(np.sum(adjacency_matrix, axis=1))
+        inverse_degree_matrix = np.linalg.inv(degree_matrix)
+
+        # Calculate the Personalized PageRank transition matrix
+        transition_matrix = (
+            self.alpha * (inverse_degree_matrix @ adjacency_matrix)
+            + (1 - self.alpha)
+            * np.ones_like(adjacency_matrix)
+            / adjacency_matrix.shape[0]
+        )
+
+        return transition_matrix
+
+    def embed(self, graph: nx.Graph) -> np.ndarray:
+        """Embed a graph into a vector space using Personalized PageRank"""
+        num_nodes = len(graph.nodes())
+
+        transition_matrix = self._get_transition_matrix(graph)
+        embedding_matrix = self._initialize_embedding_matrix(
+            num_nodes, self.num_dimensions
+        )
+
+        # Iterate until convergence or reaching the maximum number of iterations
+        for _ in range(self.max_iterations):
+            prev_embedding_matrix = embedding_matrix.copy()
+            embedding_matrix = self._update_embedding(
+                embedding_matrix, transition_matrix
+            )
+
+            # Check for convergence using the Frobenius norm of the difference between
+            # the current and previous embedding matrices
+            diff = np.linalg.norm(embedding_matrix - prev_embedding_matrix, ord="fro")
+            if diff < self.tolerance:
+                break
+
+        return embedding_matrix
+
+    def _update_embedding(
+        self, embedding_matrix: np.ndarray, transition_matrix: np.ndarray
+    ) -> np.ndarray:
+        """Update the embedding matrix"""
+        num_dimensions = embedding_matrix.shape[1]
+        # Iterate over the columns of the embedding matrix
+        for i in range(num_dimensions):
+            # Multiply the transition matrix by the ith column of the embedding matrix
+            embedding_matrix[:, i] = transition_matrix @ embedding_matrix[:, i]
+
+        # Normalize the embedding matrix with L2 norm
+        embedding_matrix_l2_norm = np.linalg.norm(
+            embedding_matrix, axis=1, keepdims=True
+        )
+        normalized_embedding_matrix = np.divide(
+            embedding_matrix, embedding_matrix_l2_norm
+        )
+
+        return normalized_embedding_matrix
+
+
+# class CleoraGAT(Cleora):
+#     def __init__(self, num_iterations: int = 5, num_dimensions: int = 3, attention_heads: int = 1):
+#         super().__init__(num_dimensions)
+#         self.num_iterations = num_iterations
+
+#         self.gat_conv = GATConv(num_dimensions, num_dimensions, heads=attention_heads)
+
+#     def embed(self, graph: nx.Graph) -> np.ndarray:
+#         num_nodes = len(graph.nodes())
+#         embedding_matrix = self._initialize_embedding_matrix(num_nodes, self.num_dimensions)
+#         embedding_matrix = torch.tensor(embedding_matrix, dtype=torch.float)
+
+#         # Convert the NetworkX graph to a PyTorch Geometric graph
+#         pyg_graph = from_networkx(graph)
+#         pyg_graph.x = embedding_matrix
+
+#         for _ in range(self.num_iterations):
+#             embedding_matrix = self._update_embedding(pyg_graph)
+
+#         return embedding_matrix.detach().numpy()
+
+#     def _update_embedding(self, pyg_graph) -> torch.Tensor:
+#         # Apply the GAT convolution layer
+#         updated_embedding = self.gat_conv(pyg_graph.x, pyg_graph.edge_index)
+
+#         # Normalize the updated_embedding with L2 norm
+#         embedding_matrix_l2_norm = torch.norm(updated_embedding, dim=1, keepdim=True)
+#         normalized_embedding_matrix = torch.div(updated_embedding, embedding_matrix_l2_norm)
+
+#         return normalized_embedding_matrix
+
+
+class CleoraGAT(Cleora):
+    def __init__(
+        self,
+        num_iterations: int = 5,
+        num_dimensions: int = 3,
+        attention_heads: int = 1,
+        num_features: int = 100,
+    ):
+        super().__init__(num_dimensions)
+        self.num_iterations = num_iterations
+        self.num_features = num_features
+        self.attention_heads = attention_heads
+        self.gat_conv = GATConv(num_features, num_dimensions, heads=attention_heads)
+
+    def embed(self, graph: nx.Graph) -> np.ndarray:
+        num_nodes = len(graph.nodes())
+
+        # Initialize the node features matrix
+        node_features = torch.ones((num_nodes, self.num_features), dtype=torch.float)
+
+        # Convert the NetworkX graph to a PyTorch Geometric graph
+        pyg_graph = from_networkx(graph)
+        pyg_graph.x = node_features
+
+        for _ in range(self.num_iterations):
+            pyg_graph.x = self._update_embedding(pyg_graph)
+
+        return pyg_graph.x.detach().numpy()
+
+    def _update_embedding(self, pyg_graph) -> torch.Tensor:
+        # Apply the GAT convolution layer
+        updated_embedding = self.gat_conv(pyg_graph.x, pyg_graph.edge_index)
+
+        # Normalize the updated_embedding with L2 norm
+        embedding_matrix_l2_norm = torch.norm(updated_embedding, dim=1, keepdim=True)
+        normalized_embedding_matrix = torch.div(
+            updated_embedding, embedding_matrix_l2_norm
+        )
+
+        return normalized_embedding_matrix

@@ -8,7 +8,9 @@ import numpy as np
 from cleora.cleora import (
     Cleora,
     CleoraFixedIterations,
+    CleoraGAT,
     CleoraNeighbourhoodDepthIterations,
+    CleoraPPR,
 )
 
 is_debug_mode = os.getenv("DEBUG", "false") == "true"
@@ -34,7 +36,9 @@ def save_embedding_to_file(embedding: np.ndarray, filepath: str) -> None:
 @click.command()
 @click.option(
     "--algorithm-version",
-    type=click.Choice(["fixed", "neighbourhood_depth"], case_sensitive=False),
+    type=click.Choice(
+        ["fixed", "neighbourhood_depth", "ppr", "gat"], case_sensitive=False
+    ),
     default="fixed",
     help="Choose the algorithm version to run",
 )
@@ -74,6 +78,10 @@ def main(
             )
         elif algorithm_version == "neighbourhood_depth":
             return CleoraNeighbourhoodDepthIterations(num_dimensions=num_dimensions)
+        elif algorithm_version == "ppr":
+            return CleoraPPR(num_dimensions=num_dimensions)
+        elif algorithm_version == "gat":
+            return CleoraGAT(num_dimensions=num_dimensions)
         else:
             raise ValueError(f"Invalid algorithm_version version: {algorithm_version}")
 
