@@ -129,5 +129,6 @@ dmypy.json
 .pyre/
 
 # Project specific
-
+notebooks/exp_test.ipynb
 data/embeddings/
+data/embeddings_local_test/

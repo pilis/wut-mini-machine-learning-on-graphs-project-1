@@ -79,9 +79,13 @@ def main(
         elif algorithm_version == "neighbourhood_depth":
             return CleoraNeighbourhoodDepthIterations(num_dimensions=num_dimensions)
         elif algorithm_version == "ppr":
-            return CleoraPPR(num_dimensions=num_dimensions)
+            return CleoraPPR(
+                num_dimensions=num_dimensions, num_iterations=num_iterations
+            )
         elif algorithm_version == "gat":
-            return CleoraGAT(num_dimensions=num_dimensions)
+            return CleoraGAT(
+                num_dimensions=num_dimensions, num_iterations=num_iterations
+            )
         else:
             raise ValueError(f"Invalid algorithm_version version: {algorithm_version}")
 
