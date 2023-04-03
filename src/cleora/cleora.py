@@ -242,8 +242,6 @@ class CleoraGAT(Cleora):
         num_nodes = len(graph.nodes())
 
         """Initialize the node features matrix"""
-        print("Number of iterations is", self.num_iterations)
-
         node_features = torch.ones((num_nodes, self.num_dimensions), dtype=torch.float)
 
         """Convert the NetworkX graph to a PyTorch Geometric graph"""
